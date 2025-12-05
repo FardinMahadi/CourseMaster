@@ -3,13 +3,13 @@ import type { EnrollmentWithProgress } from '@/types/student.types';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { SendEmailForm } from '@/components/email/SendEmailForm';
 import { RecentActivity } from '@/components/student/RecentActivity';
 import { EnrolledCourseCard } from '@/components/student/EnrolledCourseCard';
 
 import connectDB from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 
-import Course from '@/models/Course';
 import Lesson from '@/models/Lesson';
 import Progress from '@/models/Progress';
 import Enrollment from '@/models/Enrollment';
@@ -172,6 +172,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-6">
+          <SendEmailForm />
           <RecentActivity
             recentProgress={recentProgress as any}
             recentSubmissions={recentSubmissions as any}

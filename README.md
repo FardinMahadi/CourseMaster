@@ -3,6 +3,15 @@
 A full-featured educational technology platform built with Next.js, designed for
 course management, student enrollment, and learning progress tracking.
 
+## 🌐 Live Demo
+
+**Try the application live:**
+[https://fardins-test-assessment.vercel.app/](https://fardins-test-assessment.vercel.app/)
+
+The live demo includes all features and is ready for testing. See the
+[Demo Admin Credentials](#-demo-admin-credentials) section below for test
+account information.
+
 ## 🎯 Project Overview
 
 CourseMaster is a comprehensive EdTech platform that enables:
@@ -102,8 +111,15 @@ Before you begin, ensure you have the following installed:
 
 3. **Set up environment variables**
 
-   Create a `.env.local` file in the root directory with the following
-   environment variables:
+   Copy the `.env.example` file to `.env.local` and fill in your values:
+
+   ```bash
+   # Copy the example file
+   cp .env.example .env.local
+   ```
+
+   Or manually create a `.env.local` file in the root directory with the
+   following environment variables:
 
    ```env
    # ============================================
@@ -206,10 +222,409 @@ Before you begin, ensure you have the following installed:
    pnpm dev
    ```
 
-5. **Open your browser**
+5. **Seed the database (Optional - for testing)**
+
+   If you want to populate the database with sample data for testing, you can
+   use the seed endpoint:
+
+   ```bash
+   # Using curl
+   curl -X POST http://localhost:3000/api/seed
+
+   # Or using PowerShell (Windows)
+   Invoke-WebRequest -Uri http://localhost:3000/api/seed -Method POST
+
+   # Or use Postman/Thunder Client to make a POST request to:
+   # http://localhost:3000/api/seed
+   ```
+
+   **Note**: The seed endpoint only works in development mode. Make sure you
+   have a `data/seed-data.json` file in the project root for seeding to work. If
+   the file doesn't exist, you can create test data manually through the UI.
+
+6. **Open your browser**
 
    Navigate to [http://localhost:3000](http://localhost:3000) to see the
    application.
+
+7. **Start Testing!**
+
+   Ready to test? Jump to the
+   [Quick Start Testing Guide](#-quick-start-testing-guide) below to begin
+   testing the application.
+
+## 🔐 Demo Admin Credentials
+
+For easy testing of admin features, you can use the following demo admin
+account. **Note:** This account must be created in your database first (see
+instructions below).
+
+**Demo Admin Account:**
+
+- **Email**: `mahadi@gmail.com`
+- **Password**: `mahadi`
+- **Admin Secret Key**: Use the value from `ADMIN_SECRET_KEY` in your
+  `.env.local`
+
+### How to Create the Demo Admin Account
+
+**Option 1: Using MongoDB Compass (Easiest)**
+
+1. Open MongoDB Compass and connect to your database
+2. Navigate to `coursemaster` database → `users` collection
+3. Click "Insert Document"
+4. Add the following document:
+   ```json
+   {
+     "name": "Mahadi Admin",
+     "email": "mahadi@gmail.com",
+     "password": "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyY5Y5Y5Y5Y5",
+     "role": "admin"
+   }
+   ```
+   **Note:** The password above is already hashed (for "mahadi"). If you need to
+   hash a different password, you can register a student account first and copy
+   the hashed password.
+
+**Option 2: Using MongoDB Shell**
+
+```javascript
+// Connect to your database
+use coursemaster
+
+// Insert admin user with hashed password
+db.users.insertOne({
+  name: "Mahadi Admin",
+  email: "mahadi@gmail.com",
+  password: "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyY5Y5Y5Y5Y5", // "mahadi" hashed
+  role: "admin",
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+```
+
+**Option 3: Convert a Student to Admin**
+
+1. Register a student account via the UI with email `mahadi@gmail.com` and
+   password `mahadi`
+2. Then update the role in MongoDB:
+   ```javascript
+   db.users.updateOne(
+     { email: 'mahadi@gmail.com' },
+     { $set: { role: 'admin' } }
+   );
+   ```
+
+After creating the admin account, you can login at `/admin-login` using:
+
+- Email: `mahadi@gmail.com`
+- Password: `mahadi`
+- Admin Secret Key: (from your `ADMIN_SECRET_KEY` in `.env.local`)
+
+## 🧪 Quick Start Testing Guide
+
+This section will help you quickly test the application after setup. For
+detailed testing procedures, see [Testing Guide](./docs/TESTING.md).
+
+### Testing Overview
+
+**Quick Test Flow:**
+
+1. ✅ Verify server is running at `http://localhost:3000`
+2. ✅ Register a student account or create one manually
+3. ✅ Browse courses and enroll in one
+4. ✅ Test student features (lessons, assignments, quizzes)
+5. ✅ Login as admin (create admin account first)
+6. ✅ Test admin features (create course, manage batches, review assignments)
+
+**Minimum Requirements for Testing:**
+
+- MongoDB connection working
+- At least one student account (can register via UI)
+- At least one admin account (create manually or via seed)
+- At least one course (create as admin or via seed)
+
+### Step 1: Verify Installation
+
+1. **Check if the server is running**
+   - Open [http://localhost:3000](http://localhost:3000)
+   - You should see the CourseMaster homepage
+
+2. **Verify database connection**
+   - Check the terminal/console for any MongoDB connection errors
+   - If you see connection errors, verify your `MONGODB_URI` in `.env.local`
+
+### Step 2: Create Test Accounts
+
+#### Option A: Register a Student Account (Recommended)
+
+1. Navigate to [http://localhost:3000/register](http://localhost:3000/register)
+2. Fill in the registration form:
+   - **Name**: Test Student
+   - **Email**: student@test.com (or any email)
+   - **Password**: Test123! (or any password meeting requirements)
+3. Click "Register"
+4. You should be redirected to the student dashboard
+
+#### Option B: Use Demo Admin Account (Quickest for Admin Testing)
+
+**Use the pre-configured demo admin account** - See
+[Demo Admin Credentials](#-demo-admin-credentials) section above for details.
+
+**Quick Setup:**
+
+1. Create the admin user in MongoDB (see instructions in Demo Admin Credentials
+   section)
+2. Login at `/admin-login` with:
+   - **Email**: `mahadi@gmail.com`
+   - **Password**: `mahadi`
+   - **Admin Secret Key**: (from `ADMIN_SECRET_KEY` in your `.env.local`)
+
+#### Option C: Create Custom Admin Account
+
+If you prefer to create your own admin account:
+
+1. **Register as student first:**
+   - Register a student account via the UI (see Option A above)
+
+2. **Convert to admin in MongoDB:**
+
+   **Using MongoDB Compass:**
+   - Open MongoDB Compass
+   - Connect to your database
+   - Navigate to `coursemaster` database → `users` collection
+   - Find the user you just created
+   - Click "Update" and change `role` from `"student"` to `"admin"`
+   - Save the changes
+
+   **Using MongoDB Shell:**
+
+   ```javascript
+   // Connect to your database
+   use coursemaster
+
+   // Update user role to admin (replace email with your registered email)
+   db.users.updateOne(
+     { email: "student@test.com" },
+     { $set: { role: "admin" } }
+   )
+   ```
+
+3. **Login as admin:**
+   - Navigate to `/admin-login`
+   - Use the email and password you registered with
+   - Enter the `ADMIN_SECRET_KEY` from your `.env.local`
+
+### Step 3: Test Student Features
+
+1. **Browse Courses**
+   - Navigate to the courses page
+   - Use search, filter, and sort features
+   - Click on a course to view details
+
+2. **Enroll in a Course**
+   - Click "Enroll Now" on any course
+   - Verify the course appears in your dashboard (`/dashboard`)
+
+3. **Access Course Content**
+   - Go to your dashboard
+   - Click on an enrolled course
+   - Navigate to `/learn/[courseId]` to access the course player
+   - Try marking lessons as complete
+
+4. **Submit an Assignment** (if course has assignments)
+   - Navigate to an assignment in the course
+   - Submit a Google Drive link or text answer
+   - Verify submission is recorded
+
+5. **Take a Quiz** (if course has quizzes)
+   - Navigate to a quiz in the course
+   - Answer questions and submit
+   - Verify immediate score display
+
+### Step 4: Test Admin Features
+
+1. **Admin Login**
+   - Navigate to
+     [http://localhost:3000/admin-login](http://localhost:3000/admin-login)
+   - Enter admin credentials:
+     - **Email**: `mahadi@gmail.com` (or your custom admin email)
+     - **Password**: `mahadi` (or your custom admin password)
+     - **Admin Secret Key**: (value from `ADMIN_SECRET_KEY` in `.env.local`)
+   - Click "Login"
+   - You should be redirected to the admin dashboard
+
+2. **Create a Course**
+   - Navigate to `/admin/courses/new`
+   - Fill in course details:
+     - Title, description, price, category
+     - Add lessons with video URLs
+     - Add assignments (optional)
+     - Add quizzes (optional)
+   - Click "Create Course"
+   - Verify course appears in the courses list
+
+3. **Manage Batches**
+   - Navigate to `/admin/batches`
+   - Click "Create Batch"
+   - Fill in batch details and assign courses
+   - Verify batch is created
+
+4. **View Enrollments**
+   - Navigate to `/admin/enrollments`
+   - View all student enrollments
+   - Test filtering options
+
+5. **Review Assignments**
+   - Navigate to `/admin/assignments`
+   - View student submissions
+   - Grade an assignment with score and feedback
+   - Verify grade is saved
+
+6. **View Analytics**
+   - Navigate to `/admin/analytics`
+   - Verify statistics are displayed correctly
+
+### Step 5: Quick Testing Checklist
+
+Use this checklist to verify core functionality:
+
+#### Authentication ✅
+
+- [ ] Student registration works
+- [ ] Student login works
+- [ ] Admin login works (with secret key)
+- [ ] Logout works
+- [ ] Protected routes redirect when not authenticated
+
+#### Public Features ✅
+
+- [ ] Course listing displays courses
+- [ ] Search functionality works
+- [ ] Filter by category/level works
+- [ ] Sort by price/title works
+- [ ] Course details page displays correctly
+
+#### Student Features ✅
+
+- [ ] Student dashboard shows enrolled courses
+- [ ] Can enroll in a course
+- [ ] Course player loads and plays videos
+- [ ] Can mark lessons as complete
+- [ ] Progress tracking updates correctly
+- [ ] Can submit assignments
+- [ ] Can take quizzes and see scores
+
+#### Admin Features ✅
+
+- [ ] Admin dashboard loads
+- [ ] Can create/edit/delete courses
+- [ ] Can create/edit/delete batches
+- [ ] Can view enrollments
+- [ ] Can review and grade assignments
+- [ ] Analytics dashboard displays data
+
+### Step 6: Test Common Scenarios
+
+1. **Error Handling**
+   - Try logging in with wrong credentials (should show error)
+   - Try accessing `/admin/dashboard` as a student (should redirect)
+   - Try accessing `/dashboard` without login (should redirect to login)
+
+2. **Data Persistence**
+   - Enroll in a course, then refresh the page (enrollment should persist)
+   - Mark a lesson as complete, then refresh (progress should persist)
+   - Submit an assignment, then refresh (submission should persist)
+
+3. **Responsive Design**
+   - Test on mobile viewport (320px, 375px)
+   - Test on tablet viewport (768px, 1024px)
+   - Test on desktop viewport (1280px+)
+   - Verify navigation works on all screen sizes
+
+### Troubleshooting Testing Issues
+
+**Can't connect to database:**
+
+- Verify MongoDB is running (local) or connection string is correct (Atlas)
+- Check `MONGODB_URI` in `.env.local`
+- Check terminal for connection error messages
+
+**Authentication not working:**
+
+- Verify `JWT_SECRET` is set in `.env.local`
+- Clear browser cookies and try again
+- Check browser console for errors
+
+**Admin login fails:**
+
+- Verify `ADMIN_SECRET_KEY` matches the one in `.env.local`
+- Verify admin user exists in database
+- Check that admin user has `role: "admin"` in database
+
+**API errors:**
+
+- Check browser console (F12) for error messages
+- Check terminal/console for server errors
+- Verify all environment variables are set correctly
+
+**No courses displayed:**
+
+- Create a course as admin, or
+- Use the seed endpoint to populate test data
+- Verify courses have `isPublished: true` in database
+
+### Quick Reference
+
+**Key URLs:**
+
+- Homepage: `http://localhost:3000`
+- Student Registration: `http://localhost:3000/register`
+- Student Login: `http://localhost:3000/login`
+- Student Dashboard: `http://localhost:3000/dashboard`
+- Admin Login: `http://localhost:3000/admin-login`
+- Admin Dashboard: `http://localhost:3000/admin/dashboard`
+- Courses List: `http://localhost:3000/courses`
+- Seed Endpoint: `POST http://localhost:3000/api/seed`
+
+**Test Account Setup:**
+
+1. **Student Account**: Register via `/register` page
+2. **Admin Account**:
+   - **Quick Option**: Use demo admin `mahadi@gmail.com` / `mahadi` (see
+     [Demo Admin Credentials](#-demo-admin-credentials))
+   - **Custom Option**: Register as student, then update role to `"admin"` in
+     MongoDB
+3. **Admin Secret Key**: Use the value from `ADMIN_SECRET_KEY` in `.env.local`
+
+**Demo Admin Credentials (for quick testing):**
+
+- Email: `mahadi@gmail.com`
+- Password: `mahadi`
+- See [Demo Admin Credentials](#-demo-admin-credentials) section for setup
+  instructions
+
+**Minimum Test Data Needed:**
+
+- ✅ 1 Student account (register via UI)
+- ✅ 1 Admin account (convert student to admin)
+- ✅ 1 Course (create as admin or via seed)
+- ✅ Course should have at least 1 lesson for testing
+
+**Quick Test Flow:**
+
+```
+1. Register Student → 2. Enroll in Course → 3. Access Course Player →
+4. Mark Lesson Complete → 5. Submit Assignment → 6. Take Quiz →
+7. Login as Admin → 8. Create Course → 9. Review Assignments
+```
+
+### Next Steps
+
+- **Detailed Testing**: See [Testing Guide](./docs/TESTING.md) for comprehensive
+  testing procedures
+- **API Testing**: Use Postman, Thunder Client, or curl to test API endpoints
+- **Development**: Start building new features or customizing existing ones
 
 ## 🔑 How to Generate JWT_SECRET
 

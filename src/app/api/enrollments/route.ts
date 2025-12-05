@@ -2,10 +2,12 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
+import { sendEnrollmentEmail } from '@/lib/email';
 import connectDB, { isDatabaseConnectionError } from '@/lib/db';
 import { handleAuthError, requireStudent } from '@/lib/auth-helpers';
 import { createEnrollmentSchema, enrollmentQuerySchema } from '@/lib/validations/enrollment.schema';
 
+import User from '@/models/User';
 import Course from '@/models/Course';
 import Enrollment from '@/models/Enrollment';
 
@@ -66,6 +68,17 @@ export async function POST(request: NextRequest) {
 
     // Populate course data for response
     await enrollment.populate('course', 'title description thumbnail price category');
+
+    // Send enrollment email (non-blocking)
+    const student = await User.findById(userId).select('name email');
+    if (student && course) {
+      sendEnrollmentEmail(student.name, student.email, course.title, course._id.toString()).catch(
+        error => {
+          console.error('Failed to send enrollment email:', error);
+          // Email failure shouldn't break enrollment
+        }
+      );
+    }
 
     return NextResponse.json(
       {
