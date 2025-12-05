@@ -255,11 +255,34 @@ Before you begin, ensure you have the following installed:
 
 ## 🔐 Demo Admin Credentials
 
-For easy testing of admin features, you can use the following demo admin
-account. **Note:** This account must be created in your database first (see
-instructions below).
+### Live Website Login
 
-**Demo Admin Account:**
+You can login directly to the live website using these credentials:
+
+**Live Website Admin Credentials:**
+
+- **Website**:
+  [https://fardins-test-assessment.vercel.app/admin-login](https://fardins-test-assessment.vercel.app/admin-login)
+- **Email**: `mahadi@gmial.com`
+- **Password**: `mahadi`
+- **Admin Secret Key**: `admin-secret-key-12345`
+
+**Steps to Login:**
+
+1. Visit the
+   [admin login page](https://fardins-test-assessment.vercel.app/admin-login)
+2. Enter the email: `mahadi@gmial.com`
+3. Enter the password: `mahadi`
+4. Enter the admin secret key: `admin-secret-key-12345`
+5. Click "Login" to access the admin dashboard
+
+### Local Development Setup
+
+For local development and testing, you can use the following demo admin account.
+**Note:** This account must be created in your database first (see instructions
+below).
+
+**Demo Admin Account (for local setup):**
 
 - **Email**: `mahadi@gmail.com`
 - **Password**: `mahadi`
@@ -591,13 +614,29 @@ Use this checklist to verify core functionality:
 
 1. **Student Account**: Register via `/register` page
 2. **Admin Account**:
-   - **Quick Option**: Use demo admin `mahadi@gmail.com` / `mahadi` (see
+   - **Live Website (Ready to Use)**: Login at
+     [https://fardins-test-assessment.vercel.app/admin-login](https://fardins-test-assessment.vercel.app/admin-login)
+     with:
+     - Email: `mahadi@gmial.com`
+     - Password: `mahadi`
+     - Admin Secret Key: `admin-secret-key-12345`
+   - **Local Development**: Use demo admin `mahadi@gmail.com` / `mahadi` (see
      [Demo Admin Credentials](#-demo-admin-credentials))
    - **Custom Option**: Register as student, then update role to `"admin"` in
      MongoDB
-3. **Admin Secret Key**: Use the value from `ADMIN_SECRET_KEY` in `.env.local`
+3. **Admin Secret Key**:
+   - Live Website: `admin-secret-key-12345`
+   - Local Development: Use the value from `ADMIN_SECRET_KEY` in `.env.local`
 
-**Demo Admin Credentials (for quick testing):**
+**Live Website Admin Login (Ready to Use - No Setup Required):**
+
+- **Website**:
+  [https://fardins-test-assessment.vercel.app/admin-login](https://fardins-test-assessment.vercel.app/admin-login)
+- **Email**: `mahadi@gmial.com`
+- **Password**: `mahadi`
+- **Admin Secret Key**: `admin-secret-key-12345`
+
+**Local Development Admin (requires setup):**
 
 - Email: `mahadi@gmail.com`
 - Password: `mahadi`
