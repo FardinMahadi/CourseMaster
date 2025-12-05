@@ -145,6 +145,17 @@ Before you begin, ensure you have the following installed:
    # REDIS_CACHE_TTL=300
 
    # ============================================
+   # Email Configuration (Optional - for notifications)
+   # ============================================
+   # SMTP settings for sending emails (welcome emails, notifications)
+   # If not provided, emails will be skipped gracefully
+   # SMTP_HOST=smtp.gmail.com
+   # SMTP_PORT=587
+   # SMTP_USER=your-email@gmail.com
+   # SMTP_PASSWORD=your-app-password
+   # SMTP_FROM=noreply@coursemaster.com
+
+   # ============================================
    # Next.js Configuration
    # ============================================
    # Public API URL (optional, defaults to /api)
@@ -177,6 +188,12 @@ Before you begin, ensure you have the following installed:
    # Optional: Redis for caching (application works without it)
    REDIS_URL=redis://localhost:6379
    REDIS_CACHE_TTL=300
+   # Optional: Email configuration (application works without it)
+   # SMTP_HOST=smtp.gmail.com
+   # SMTP_PORT=587
+   # SMTP_USER=your-email@gmail.com
+   # SMTP_PASSWORD=your-app-password
+   # SMTP_FROM=noreply@coursemaster.com
    ```
 
 4. **Run the development server**

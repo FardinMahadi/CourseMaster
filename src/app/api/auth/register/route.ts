@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import connectDB from '@/lib/db';
+import { sendWelcomeEmail } from '@/lib/email';
 import { handleApiError } from '@/lib/api-error-handler';
 import { generateToken, setTokenCookie } from '@/lib/auth';
 import { registerSchema } from '@/lib/validations/auth.schema';
@@ -56,6 +57,12 @@ export async function POST(request: NextRequest) {
       sameSite: cookie.sameSite,
       path: cookie.path,
       maxAge: cookie.maxAge,
+    });
+
+    // Send welcome email (non-blocking - don't fail registration if email fails)
+    sendWelcomeEmail(user.name, user.email).catch(error => {
+      console.error('Failed to send welcome email:', error);
+      // Email failure shouldn't break registration
     });
 
     // Console log the response

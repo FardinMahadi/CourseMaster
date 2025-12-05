@@ -3,7 +3,15 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BookOpen, Users, FileText, GraduationCap, Menu } from 'lucide-react';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
+  FileText,
+  GraduationCap,
+  Menu,
+  BarChart3,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -20,6 +28,7 @@ const adminLinks = [
   { href: '/admin/batches', label: 'Batches', icon: GraduationCap },
   { href: '/admin/enrollments', label: 'Enrollments', icon: Users },
   { href: '/admin/assignments', label: 'Assignments', icon: FileText },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 const studentLinks = [
