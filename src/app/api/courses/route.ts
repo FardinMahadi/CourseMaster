@@ -2,8 +2,15 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
-import connectDB, { isDatabaseConnectionError } from '@/lib/db';
+import connectDB from '@/lib/db';
+import { handleApiError } from '@/lib/api-error-handler';
 import { courseListQuerySchema, createCourseSchema } from '@/lib/validations/course.schema';
+import {
+  generateCacheKey,
+  getCachedData,
+  invalidateCourseListCache,
+  setCachedData,
+} from '@/lib/cache';
 
 import User from '@/models/User';
 import Course from '@/models/Course';
@@ -27,6 +34,29 @@ export async function GET(request: NextRequest) {
     };
 
     const validatedQuery = courseListQuerySchema.parse(queryParams);
+
+    // Try to get cached data
+    const cacheKey = generateCacheKey(validatedQuery);
+    const cachedData = await getCachedData<{
+      courses: unknown[];
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        total: number;
+        limit: number;
+        hasNextPage: boolean;
+        hasPrevPage: boolean;
+      };
+    }>(cacheKey);
+
+    if (cachedData) {
+      return NextResponse.json(
+        {
+          data: cachedData,
+        },
+        { status: 200 }
+      );
+    }
 
     // Build filter object
     const filter: Record<string, unknown> & {
@@ -112,46 +142,29 @@ export async function GET(request: NextRequest) {
     // Calculate total pages
     const totalPages = Math.ceil(total / limit);
 
+    const responseData = {
+      courses,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        total,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
+
+    // Cache the response data
+    await setCachedData(cacheKey, responseData);
+
     return NextResponse.json(
       {
-        data: {
-          courses,
-          pagination: {
-            currentPage: page,
-            totalPages,
-            total,
-            limit,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
-          },
-        },
+        data: responseData,
       },
       { status: 200 }
     );
   } catch (error) {
-    // Handle database connection errors
-    if (isDatabaseConnectionError(error)) {
-      console.error('Database connection error during course listing:', error);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Handle Zod validation errors
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: error.message,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Handle other errors
-    console.error('Course listing error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'course listing');
   }
 }
 
@@ -188,6 +201,9 @@ export async function POST(request: NextRequest) {
     // Populate instructor for response
     await course.populate('instructor', 'name email');
 
+    // Invalidate course list cache since a new course was created
+    await invalidateCourseListCache();
+
     return NextResponse.json(
       {
         message: 'Course created successfully',
@@ -196,49 +212,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    // Handle database connection errors
-    if (isDatabaseConnectionError(error)) {
-      console.error('Database connection error during course creation:', error);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Handle Zod validation errors
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: error.message,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Handle Mongoose validation errors
-    if (error instanceof Error && error.name === 'ValidationError') {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: error.message,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Handle duplicate key errors
-    if (error instanceof Error && (error as any).code === 11000) {
-      return NextResponse.json(
-        {
-          error: 'Course with this title already exists',
-        },
-        { status: 409 }
-      );
-    }
-
-    // Handle other errors
-    console.error('Course creation error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'course creation');
   }
 }

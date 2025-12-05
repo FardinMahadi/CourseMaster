@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { quizIdSchema } from '@/lib/validations/quiz.schema';
 import connectDB, { isDatabaseConnectionError } from '@/lib/db';
+import { handleAuthError, requireStudent } from '@/lib/auth-helpers';
 
 import Quiz from '@/models/Quiz';
 import Enrollment from '@/models/Enrollment';
@@ -14,18 +15,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can view quizzes
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can view quizzes' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const { id } = await params;
 
@@ -96,8 +88,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    // Handle other errors
-    console.error('Quiz fetch error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Handle authentication errors
+    return handleAuthError(error);
   }
 }

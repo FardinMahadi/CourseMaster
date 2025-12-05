@@ -37,6 +37,7 @@
     "react-dom": "19.2.0",
     "react-hook-form": "^7.67.0",
     "react-redux": "^9.2.0",
+    "redis": "^5.10.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zod": "4.0.0"
@@ -49,6 +50,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/redis": "^4.0.11",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.6",

@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import connectDB, { isDatabaseConnectionError } from '@/lib/db';
+import { handleAuthError, requireStudent } from '@/lib/auth-helpers';
 import { assignmentQuerySchema, submitAssignmentSchema } from '@/lib/validations/assignment.schema';
 
 import Assignment from '@/models/Assignment';
@@ -14,18 +15,9 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can view assignments
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can view assignments' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const { searchParams } = new URL(request.url);
     const queryParams = {
@@ -121,9 +113,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Handle other errors
-    console.error('Assignment fetch error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Handle authentication errors
+    return handleAuthError(error);
   }
 }
 
@@ -132,18 +123,9 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can submit assignments
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can submit assignments' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const body = await request.json();
     const validatedData = submitAssignmentSchema.parse(body);
@@ -219,8 +201,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle other errors
-    console.error('Assignment submission error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Handle authentication errors
+    return handleAuthError(error);
   }
 }

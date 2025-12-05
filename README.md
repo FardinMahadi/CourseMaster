@@ -66,11 +66,11 @@ developed as a 4-day sprint.
 ### Admin Features (Protected)
 
 - Admin authentication with secret key
-- Course CRUD operations
-- Batch management
-- Enrollment management and viewing
-- Assignment review interface
-- Analytics dashboard (planned)
+- Course CRUD operations with comprehensive form (lessons, assignments, quizzes)
+- Batch management (create, edit, list batches)
+- Enrollment management and viewing with filters
+- Assignment review and grading interface
+- Analytics dashboard with statistics
 
 ## 📋 Prerequisites
 
@@ -79,6 +79,7 @@ Before you begin, ensure you have the following installed:
 - **Node.js** 18.x or higher
 - **npm**, **yarn**, **pnpm**, or **bun** package manager
 - **MongoDB** database (local or MongoDB Atlas)
+- **Redis** (optional, for caching - application works without it)
 
 ## 🛠️ Installation & Setup
 
@@ -132,6 +133,18 @@ Before you begin, ensure you have the following installed:
    ADMIN_SECRET_KEY=your_admin_secret_key_here
 
    # ============================================
+   # Redis Configuration (Optional - for caching)
+   # ============================================
+   # Redis connection URL for caching API responses
+   # For local Redis: redis://localhost:6379
+   # For Redis Cloud: redis://username:password@host:port
+   # If not provided, the application will work without caching (graceful degradation)
+   # REDIS_URL=redis://localhost:6379
+
+   # Cache TTL (Time To Live) in seconds (optional, defaults to 300 seconds / 5 minutes)
+   # REDIS_CACHE_TTL=300
+
+   # ============================================
    # Next.js Configuration
    # ============================================
    # Public API URL (optional, defaults to /api)
@@ -161,6 +174,9 @@ Before you begin, ensure you have the following installed:
    JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
    JWT_EXPIRES_IN=7d
    ADMIN_SECRET_KEY=your_admin_secret_key_change_this
+   # Optional: Redis for caching (application works without it)
+   REDIS_URL=redis://localhost:6379
+   REDIS_CACHE_TTL=300
    ```
 
 4. **Run the development server**
@@ -300,6 +316,81 @@ check:
 - IP address is whitelisted (for Atlas)
 - Database user credentials are correct
 
+## 🔴 Redis Setup (Optional - for Caching)
+
+Redis is **optional** and used for caching API responses to improve performance.
+The application will work perfectly fine without Redis, but caching will improve
+response times for frequently accessed endpoints like the course listing API.
+
+### Option 1: Local Redis
+
+1. **Install Redis** on your machine:
+   - **Windows**: Download from
+     [Redis for Windows](https://github.com/microsoftarchive/redis/releases) or
+     use [WSL](https://docs.microsoft.com/en-us/windows/wsl/)
+   - **macOS**: `brew install redis`
+   - **Linux**: `sudo apt-get install redis-server` (Ubuntu/Debian) or
+     `sudo yum install redis` (CentOS/RHEL)
+
+2. **Start Redis service**:
+
+   ```bash
+   # Windows (using WSL or Redis service)
+   redis-server
+
+   # macOS
+   brew services start redis
+
+   # Linux
+   sudo systemctl start redis
+   # or
+   redis-server
+   ```
+
+3. **Use connection string**:
+   ```env
+   REDIS_URL=redis://localhost:6379
+   ```
+
+### Option 2: Redis Cloud (Recommended for Production)
+
+1. **Create a free account** at [Redis Cloud](https://redis.com/try-free/)
+
+2. **Create a new database** (free tier available)
+
+3. **Get your connection string**:
+   - Copy the connection URL from your Redis Cloud dashboard
+   - It will look like: `redis://default:password@host:port`
+
+4. **Add to `.env.local`**:
+   ```env
+   REDIS_URL=redis://default:password@host:port
+   REDIS_CACHE_TTL=300
+   ```
+
+### Cache Configuration
+
+- **Cache TTL**: Default is 300 seconds (5 minutes). You can customize this with
+  `REDIS_CACHE_TTL` environment variable.
+- **Cache Invalidation**: Cache is automatically invalidated when courses are
+  created, updated, or deleted.
+- **Graceful Degradation**: If Redis is unavailable, the application will
+  continue to work normally, just without caching.
+
+### Verify Redis Connection
+
+After setting up Redis, start your development server. If Redis is connected,
+you'll see `✅ Redis Connected` in the console. If Redis is unavailable, you'll
+see a warning but the application will continue to work:
+
+- Redis service is running (for local setup)
+- Connection string is correct
+- Network access is allowed (for Redis Cloud)
+- Credentials are correct (for Redis Cloud)
+
+**Note**: Redis connection failures are handled gracefully - the application
+will fall back to direct database queries if Redis is unavailable.
+
 ## 📁 Project Structure
 
 ```
@@ -341,11 +432,12 @@ misun-academy/
 
 ## 📊 Development Status
 
-**Current Progress**: ~15% (Setup phase mostly complete)
+**Current Progress**: ~95% (All core features complete, testing and deployment
+remaining)
 
-**Current Phase**: Phase 1 - Project Setup & Infrastructure
+**Current Phase**: Phase 5 - Admin Features (Complete)
 
-**Status**: 🟡 In Progress
+**Status**: 🟢 Nearly Complete
 
 For detailed progress tracking, see [docs/PROGRESS.md](./docs/PROGRESS.md)
 
@@ -358,13 +450,15 @@ For detailed progress tracking, see [docs/PROGRESS.md](./docs/PROGRESS.md)
 - ESLint and Prettier configuration
 - Core dependencies installation
 - Project directory structure
-
-### In Progress 🟡
-
-- Environment variables setup
-- Database connection configuration
-- Authentication system
-- Database models
+- Authentication system (student & admin)
+- Database models and connections
+- Public course listing and details
+- Student features (dashboard, course player, assignments, quizzes)
+- Admin features (dashboard, course management, batch management, enrollment
+  management, assignment review)
+- Performance optimizations (database indexes, query optimization)
+- UI components (Sidebar, Footer, ProgressTracker)
+- Redux state management (auth, course, UI slices)
 
 ## 🔐 Authentication
 
@@ -432,13 +526,40 @@ Routes are automatically protected by middleware:
 
 ### Assignments
 
-- `POST /api/assignments` - Submit assignment
-- `GET /api/assignments` - List assignments
+- `POST /api/assignments` - Submit assignment (student only)
+- `GET /api/assignments` - List assignments (student only)
+- `GET /api/assignments/[id]` - Get assignment details (student only)
+- `GET /api/assignments/admin` - List all submissions (admin only)
+- `GET /api/assignments/admin/[id]` - Get submission details (admin only)
+- `PUT /api/assignments/admin/[id]` - Grade submission (admin only)
+- `POST /api/assignments/admin` - Create assignment (admin only)
+- `PUT /api/assignments/admin/[id]` - Update assignment (admin only)
 
 ### Quizzes
 
-- `POST /api/quizzes` - Submit quiz
+- `GET /api/quizzes` - List quizzes (student only)
 - `GET /api/quizzes/[id]` - Get quiz details
+- `POST /api/quizzes/[id]/submit` - Submit quiz (student only)
+- `POST /api/quizzes/admin` - Create quiz (admin only)
+- `PUT /api/quizzes/admin/[id]` - Update quiz (admin only)
+
+### Lessons
+
+- `POST /api/lessons` - Create lesson (admin only)
+- `PUT /api/lessons/[id]` - Update lesson (admin only)
+- `DELETE /api/lessons/[id]` - Delete lesson (admin only)
+
+### Batches
+
+- `GET /api/batches` - List batches (with filters)
+- `POST /api/batches` - Create batch (admin only)
+- `GET /api/batches/[id]` - Get batch details
+- `PUT /api/batches/[id]` - Update batch (admin only)
+- `DELETE /api/batches/[id]` - Delete batch (admin only)
+
+### Admin Routes
+
+- `GET /api/enrollments/admin` - List all enrollments (admin only)
 
 ## 🎨 UI Components
 
@@ -448,30 +569,127 @@ customized as needed.
 
 ## 🚢 Deployment
 
+### Pre-Deployment Checklist
+
+Before deploying, ensure:
+
+- [ ] All environment variables are set in your deployment platform
+- [ ] MongoDB Atlas is configured (recommended for production)
+- [ ] Production build succeeds (`pnpm build`)
+- [ ] All tests pass (see [Testing Guide](./docs/TESTING.md))
+- [ ] API documentation is reviewed (see [API Documentation](./docs/API.md))
+
+### Environment Variables for Production
+
+Set the following environment variables in your deployment platform:
+
+```env
+MONGODB_URI=your_production_mongodb_connection_string
+JWT_SECRET=your_production_jwt_secret_key
+JWT_EXPIRES_IN=7d
+ADMIN_SECRET_KEY=your_production_admin_secret_key
+NEXT_PUBLIC_APP_URL=https://your-domain.com
+```
+
+**Important**: Use different secrets for production than development!
+
 ### Vercel (Recommended)
 
 The easiest way to deploy this Next.js app is using
 [Vercel](https://vercel.com):
 
-1. Push your code to GitHub
-2. Import your repository on Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+1. **Push your code to GitHub**
+
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **Import your repository on Vercel**
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "Add New Project"
+   - Import your GitHub repository
+
+3. **Configure environment variables**
+   - Go to Project Settings → Environment Variables
+   - Add all required environment variables (see above)
+   - Use different values for Production, Preview, and Development
+
+4. **Deploy!**
+   - Vercel will automatically detect Next.js
+   - Build command: `pnpm build` (or `npm run build`)
+   - Output directory: `.next`
+   - Framework preset: Next.js
+
+5. **Configure MongoDB Atlas**
+   - Add Vercel's IP addresses to MongoDB Atlas Network Access
+   - Or allow access from anywhere (0.0.0.0/0) for development
 
 ### Other Platforms
 
 This Next.js app can be deployed on any platform that supports Node.js:
 
-- [Netlify](https://netlify.com)
-- [Railway](https://railway.app)
-- [Render](https://render.com)
-- [Heroku](https://heroku.com)
+- **Netlify**: Follow
+  [Next.js deployment guide](https://docs.netlify.com/integrations/frameworks/next-js/)
+- **Railway**: Connect GitHub repo and set environment variables
+- **Render**: Use Node.js environment and set build command to `pnpm build`
+- **Heroku**: Use Node.js buildpack and set build command
 
-Make sure to set all required environment variables in your deployment platform.
+**Important**: Make sure to set all required environment variables in your
+deployment platform.
+
+### Post-Deployment
+
+After deployment:
+
+1. **Verify deployment**
+   - Visit your live URL
+   - Test authentication flow
+   - Test API endpoints
+   - Check database connection
+
+2. **Monitor logs**
+   - Check for any errors in deployment logs
+   - Monitor API response times
+   - Check database connection status
+
+3. **Set up monitoring** (optional)
+   - Configure error tracking (e.g., Sentry)
+   - Set up uptime monitoring
+   - Configure database backups
+
+### Troubleshooting
+
+**Build fails:**
+
+- Check Node.js version (requires 18.x or higher)
+- Verify all dependencies are installed
+- Check for TypeScript errors (`pnpm build` locally)
+
+**Database connection errors:**
+
+- Verify MongoDB Atlas IP whitelist includes deployment platform IPs
+- Check connection string format
+- Verify database user credentials
+
+**Authentication not working:**
+
+- Verify JWT_SECRET is set correctly
+- Check cookie settings (HTTP-only, secure, same-site)
+- Verify token expiration settings
+
+**API errors:**
+
+- Check API routes are accessible
+- Verify middleware is working correctly
+- Check CORS settings if accessing from different domain
 
 ## 📖 Documentation
 
 - [Development Progress](./docs/PROGRESS.md) - Detailed progress tracking
+- [API Documentation](./docs/API.md) - Complete API reference
+- [Testing Guide](./docs/TESTING.md) - Testing checklist and procedures
 - [Technical Assessment](./docs/Technical%20Assessment_%20Web%20Developer_MISUN%20Academy.pdf) -
   Project requirements
 

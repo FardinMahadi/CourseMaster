@@ -2,7 +2,9 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
-import connectDB, { isDatabaseConnectionError } from '@/lib/db';
+import connectDB from '@/lib/db';
+import { requireStudent } from '@/lib/auth-helpers';
+import { handleApiError } from '@/lib/api-error-handler';
 import { progressQuerySchema, updateProgressSchema } from '@/lib/validations/progress.schema';
 
 import Lesson from '@/models/Lesson';
@@ -15,18 +17,9 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can update progress
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can update progress' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const body = await request.json();
     const validatedData = updateProgressSchema.parse(body);
@@ -100,23 +93,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    // Handle validation errors
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json({ error: 'Invalid input data', details: error }, { status: 400 });
-    }
-
-    // Handle database connection errors
-    if (isDatabaseConnectionError(error)) {
-      console.error('Database connection error during progress update:', error);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Handle other errors
-    console.error('Progress update error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'update progress');
   }
 }
 
@@ -125,18 +102,9 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can view their progress
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can view progress' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const { searchParams } = new URL(request.url);
     const queryParams = {
@@ -199,25 +167,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    // Handle validation errors
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Invalid query parameters', details: error },
-        { status: 400 }
-      );
-    }
-
-    // Handle database connection errors
-    if (isDatabaseConnectionError(error)) {
-      console.error('Database connection error during progress fetch:', error);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Handle other errors
-    console.error('Progress fetch error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'get progress');
   }
 }

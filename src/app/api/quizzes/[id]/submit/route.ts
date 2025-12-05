@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import connectDB, { isDatabaseConnectionError } from '@/lib/db';
+import { handleAuthError, requireStudent } from '@/lib/auth-helpers';
 import { quizIdSchema, submitQuizSchema } from '@/lib/validations/quiz.schema';
 
 import Quiz from '@/models/Quiz';
@@ -14,18 +15,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     await connectDB();
 
-    // Get student user ID from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only students can submit quizzes
-    if (userRole !== 'student') {
-      return NextResponse.json({ error: 'Only students can submit quizzes' }, { status: 403 });
-    }
+    // Require authentication and student role
+    const user = requireStudent(request);
+    const userId = user.userId;
 
     const { id } = await params;
 
@@ -135,8 +127,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    // Handle other errors
-    console.error('Quiz submission error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Handle authentication errors
+    return handleAuthError(error);
   }
 }

@@ -22,7 +22,7 @@ export function requireAuthServer(request: NextRequest) {
  */
 export function requireRoleServer(request: NextRequest, role: UserRole) {
   const user = requireAuthServer(request);
-  if (user.role !== role) {
+  if (!user || user.role !== role) {
     if (role === 'admin') {
       redirect('/dashboard');
     } else {

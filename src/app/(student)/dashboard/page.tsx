@@ -9,6 +9,7 @@ import { EnrolledCourseCard } from '@/components/student/EnrolledCourseCard';
 import connectDB from '@/lib/db';
 import { verifyToken } from '@/lib/auth';
 
+import Course from '@/models/Course';
 import Lesson from '@/models/Lesson';
 import Progress from '@/models/Progress';
 import Enrollment from '@/models/Enrollment';

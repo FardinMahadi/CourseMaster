@@ -56,6 +56,11 @@ enrollmentSchema.index({ student: 1 });
 enrollmentSchema.index({ course: 1 });
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
 enrollmentSchema.index({ status: 1 });
+enrollmentSchema.index({ enrolledAt: -1 });
+enrollmentSchema.index({ batch: 1 });
+// Compound index for common queries
+enrollmentSchema.index({ course: 1, status: 1 });
+enrollmentSchema.index({ student: 1, status: 1 });
 
 const Enrollment: IEnrollmentModel =
   (mongoose.models.Enrollment as IEnrollmentModel) ||

@@ -1,5 +1,6 @@
 import { NextRequest as NextRequestType, NextResponse } from 'next/server';
 
+import { invalidateCourseListCache } from '@/lib/cache';
 import connectDB, { isDatabaseConnectionError } from '@/lib/db';
 import { courseIdSchema, updateCourseSchema } from '@/lib/validations/course.schema';
 
@@ -114,6 +115,9 @@ export async function PUT(
     // Populate instructor for response
     await course.populate('instructor', 'name email');
 
+    // Invalidate course list cache since course was updated
+    await invalidateCourseListCache();
+
     return NextResponse.json(
       {
         message: 'Course updated successfully',
@@ -209,6 +213,9 @@ export async function DELETE(
 
     // Delete course
     await Course.findByIdAndDelete(id);
+
+    // Invalidate course list cache since course was deleted
+    await invalidateCourseListCache();
 
     return NextResponse.json(
       {

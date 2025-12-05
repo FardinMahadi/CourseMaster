@@ -79,8 +79,12 @@ batchSchema.pre('save', async function () {
 // Indexes
 batchSchema.index({ course: 1 });
 batchSchema.index({ startDate: 1 });
+batchSchema.index({ endDate: 1 });
 batchSchema.index({ status: 1 });
 batchSchema.index({ instructor: 1 });
+// Compound index for common queries
+batchSchema.index({ course: 1, status: 1 });
+batchSchema.index({ instructor: 1, status: 1 });
 
 const Batch: IBatchModel =
   (mongoose.models.Batch as IBatchModel) ||

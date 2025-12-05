@@ -2,9 +2,10 @@ import type { NextRequest } from 'next/server';
 
 import { NextResponse } from 'next/server';
 
+import connectDB from '@/lib/db';
+import { handleApiError } from '@/lib/api-error-handler';
 import { generateToken, setTokenCookie } from '@/lib/auth';
 import { registerSchema } from '@/lib/validations/auth.schema';
-import connectDB, { isDatabaseConnectionError } from '@/lib/db';
 
 import User from '@/models/User';
 
@@ -69,33 +70,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    // Handle database connection errors
-    if (isDatabaseConnectionError(error)) {
-      console.error('Database connection error during registration:', error);
-      return NextResponse.json(
-        { error: 'Service temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Handle Zod validation errors
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: error.message,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Handle duplicate key error (MongoDB)
-    if (error instanceof Error && error.message.includes('E11000')) {
-      return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
-    }
-
-    // Handle other errors
-    console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'user registration');
   }
 }

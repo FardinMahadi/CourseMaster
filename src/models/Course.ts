@@ -89,6 +89,11 @@ courseSchema.index({ category: 1 });
 courseSchema.index({ instructor: 1 });
 courseSchema.index({ isPublished: 1 });
 courseSchema.index({ tags: 1 });
+courseSchema.index({ level: 1 });
+courseSchema.index({ price: 1 });
+// Compound index for common queries
+courseSchema.index({ isPublished: 1, category: 1 });
+courseSchema.index({ isPublished: 1, level: 1 });
 
 const Course: ICourseModel =
   (mongoose.models.Course as ICourseModel) ||

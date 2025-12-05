@@ -80,6 +80,10 @@ submissionSchema.index({ assignment: 1 });
 submissionSchema.index({ student: 1 });
 submissionSchema.index({ assignment: 1, student: 1 }, { unique: true });
 submissionSchema.index({ status: 1 });
+submissionSchema.index({ submittedAt: -1 });
+// Compound index for common queries
+submissionSchema.index({ assignment: 1, status: 1 });
+submissionSchema.index({ student: 1, status: 1 });
 
 const Submission: ISubmissionModel =
   (mongoose.models.Submission as ISubmissionModel) ||

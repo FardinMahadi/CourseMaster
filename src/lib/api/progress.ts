@@ -22,7 +22,7 @@ export async function updateProgress(
   lessonId: string,
   data: Partial<ProgressUpdate>
 ): Promise<UpdateProgressResponse> {
-  const response = await api.post<UpdateProgressResponse>('/api/progress', {
+  const response = await api.post<UpdateProgressResponse>('/progress', {
     courseId,
     lessonId,
     isCompleted: data.isCompleted ?? false,
@@ -50,7 +50,7 @@ export async function getProgress(
   }
 
   const queryString = params.toString();
-  const url = queryString ? `/api/progress?${queryString}` : '/api/progress';
+  const url = queryString ? `/progress?${queryString}` : '/progress';
 
   const response = await api.get<GetProgressResponse>(url);
 

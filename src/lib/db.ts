@@ -130,11 +130,16 @@ async function connectDB(): Promise<typeof mongoose> {
         resetConnection();
 
         // Log the error with details
+        interface MongoError extends Error {
+          code?: number | string;
+          codeName?: string;
+        }
+        const mongoError = error as MongoError;
         console.error('❌ MongoDB connection failed:', {
           message: error.message,
           name: error.name,
-          code: (error as any).code,
-          codeName: (error as any).codeName,
+          code: mongoError.code,
+          codeName: mongoError.codeName,
           uri: MONGODB_URI?.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'), // Hide credentials
           fullError: error,
         });

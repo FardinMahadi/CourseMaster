@@ -53,3 +53,12 @@ export const assignmentIdSchema = z
   .string()
   .min(1, 'Assignment ID is required')
   .regex(/^[0-9a-fA-F]{24}$/, 'Invalid assignment ID format');
+
+// Schema for grading an assignment (admin only)
+export const gradeAssignmentSchema = z.object({
+  score: z.number().min(0, 'Score cannot be negative'),
+  feedback: z.string().trim().optional(),
+  status: z.enum(['submitted', 'graded', 'returned']),
+});
+
+export type GradeAssignmentInput = z.infer<typeof gradeAssignmentSchema>;
