@@ -2,7 +2,18 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, User, LogOut, LayoutDashboard } from 'lucide-react';
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  LayoutDashboard,
+  BookOpen,
+  GraduationCap,
+  Users,
+  FileText,
+  BarChart3,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -60,6 +71,28 @@ export function Navbar() {
             >
               Courses
             </Link>
+            {isAuthenticated && user?.role === 'admin' && (
+              <>
+                <Link
+                  href="/admin/dashboard"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Admin Dashboard
+                </Link>
+                <Link
+                  href="/admin/courses"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Manage Courses
+                </Link>
+                <Link
+                  href="/admin/analytics"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Analytics
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Desktop Auth & Theme */}
@@ -83,12 +116,53 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center">
-                      <LayoutDashboard className="mr-2 size-4" />
-                      Student Dashboard
-                    </Link>
-                  </DropdownMenuItem>
+                  {user.role === 'admin' ? (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/dashboard" className="flex items-center">
+                          <LayoutDashboard className="mr-2 size-4" />
+                          Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/courses" className="flex items-center">
+                          <BookOpen className="mr-2 size-4" />
+                          Manage Courses
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/batches" className="flex items-center">
+                          <GraduationCap className="mr-2 size-4" />
+                          Batches
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/enrollments" className="flex items-center">
+                          <Users className="mr-2 size-4" />
+                          Enrollments
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/assignments" className="flex items-center">
+                          <FileText className="mr-2 size-4" />
+                          Assignments
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/analytics" className="flex items-center">
+                          <BarChart3 className="mr-2 size-4" />
+                          Analytics
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="flex items-center">
+                        <LayoutDashboard className="mr-2 size-4" />
+                        Student Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} variant="destructive">
                     <LogOut className="mr-2 size-4" />
@@ -141,6 +215,31 @@ export function Navbar() {
               >
                 Courses
               </Link>
+              {isAuthenticated && user?.role === 'admin' && (
+                <>
+                  <Link
+                    href="/admin/dashboard"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link
+                    href="/admin/courses"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Manage Courses
+                  </Link>
+                  <Link
+                    href="/admin/analytics"
+                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Analytics
+                  </Link>
+                </>
+              )}
               <div className="flex flex-col space-y-2 pt-2">
                 {loading ? (
                   <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
@@ -150,12 +249,53 @@ export function Navbar() {
                       <p className="font-medium">{user.name}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
-                    <Button asChild variant="ghost" className="justify-start">
-                      <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                        <LayoutDashboard className="mr-2 size-4" />
-                        Student Dashboard
-                      </Link>
-                    </Button>
+                    {user.role === 'admin' ? (
+                      <>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                            <LayoutDashboard className="mr-2 size-4" />
+                            Admin Dashboard
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/courses" onClick={() => setMobileMenuOpen(false)}>
+                            <BookOpen className="mr-2 size-4" />
+                            Manage Courses
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/batches" onClick={() => setMobileMenuOpen(false)}>
+                            <GraduationCap className="mr-2 size-4" />
+                            Batches
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/enrollments" onClick={() => setMobileMenuOpen(false)}>
+                            <Users className="mr-2 size-4" />
+                            Enrollments
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/assignments" onClick={() => setMobileMenuOpen(false)}>
+                            <FileText className="mr-2 size-4" />
+                            Assignments
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="justify-start">
+                          <Link href="/admin/analytics" onClick={() => setMobileMenuOpen(false)}>
+                            <BarChart3 className="mr-2 size-4" />
+                            Analytics
+                          </Link>
+                        </Button>
+                      </>
+                    ) : (
+                      <Button asChild variant="ghost" className="justify-start">
+                        <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                          <LayoutDashboard className="mr-2 size-4" />
+                          Student Dashboard
+                        </Link>
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       className="justify-start text-destructive"
